@@ -29,7 +29,7 @@ compute_all_stats = function(A,
   )
 }
 
-# explore networks -------------------------------------------------
+# explore network -------------------------------------------------
 
 if (!exists("Alist")) Alist <- readRDS(file.path("data","Alist.rds"))
 college_names <- names(Alist)

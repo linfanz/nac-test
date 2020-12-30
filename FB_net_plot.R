@@ -1,7 +1,7 @@
 # Network plot 
 if (!exists("Alist")) Alist <- readRDS(file.path("data","Alist.rds"))
 college_names <- names(Alist)
-net_id = which(college_names == "Maryland58")
+net_id = which(college_names == "Caltech36")
 # net_id = which(college_names == "Northeastern19")
 # net_id = which(college_names == "Harvard1")
 # net_id = which(college_names == "Stanford3")
@@ -21,12 +21,12 @@ g2 = g %>%
 # stanford > 3
 # maryland > 0
 degs2 <- degree(g2)
-idx <- degs2 > 2
+idx <- degs2 > 0
 g3 <- g2 %>% 
   induced_subgraph(idx)%>%
   extract_largest_cc()
 
-K = 2
+K = 3
 dev.off()
 A <- as_adjacency_matrix(g3)
 zh = spec_clust(A, K, tau = 0.25)

@@ -6,6 +6,9 @@ library(Matrix)
 library(dplyr)
 library(parallel)
 library(foreach)
+library(randnet)
+
+source('bootstrap debiasing.R')
 
 # parameters set up -------------------------------------------------------
 n <- 5000 # number of nodes
@@ -19,20 +22,51 @@ lamax = 25
 lambdas <- round(10^seq(log10(3),log10(lamax), length.out = 10), 2)
 nlam = length(lambdas)
 # connectivity matrix 
+# B1
 Bs <- lapply(lambdas,  function(lambda) pp_conn(n, beta, lambda, Pi)$B )
-bootrep <- 10 # bootstrap debaising repetition 
-alpha <- 1e-4
+# B2
+# gamma <- 0.3
+# rsymperm = function(K) {
+#   if (K == 1) return(1)
+#   B = matrix(0, K, K)
+#   r = sample(1:K, 1)
+#   B[1,r] = B[r,1] = 1
+#   idx = setdiff(1:K, c(1,r))
+#   nidx = length(idx)
+#   if (nidx > 0) {
+#     B[idx, idx] = rsymperm(nidx)  
+#   }
+#   B
+# }
+# gen_rand_conn = function(n, K, lambda, gamma, pri = rep(1,K)/K) {
+#   B = matrix(runif(K^2),K)
+#   B = (B + t(B))/2
+#   # main structure 
+#   rand_perm_mat = rsymperm(K) # diag(K)[, sample(K)]
+#   B = (1-gamma)*rand_perm_mat + gamma*B
+#   scale = get_dcsbm_exav_deg(n, pri, B)
+#   B*lambda/scale
+# }
+# B3,  different numbers on the diagonal
+# Bs <- lapply(lambdas,  function(lambda) pp_conn(n, beta, lambda, Pi, d = c(1,2,3,1))$B)
 
 # simulation --------------------------------------------------------------
-nitr = 5 # number of simulated adjacency matrix
-runs = expand.grid(lam_idx = 1:nlam, itr = 1:nitr)
+bootrep <- 10 # bootstrap debaising repetition 
+alpha <- 1e-6 # significance level
+nitr <- 200 # number of simulated adjacency matrix
+runs <- expand.grid(lam_idx = 1:nlam, itr = 1:nitr)
 
 simulate_run <- function(j) {
   idx <- runs[j,"lam_idx"]
   itr <- runs[j,"itr"]
   
   lambda <- lambdas[idx]
-  B <- Bs[[idx]]   # simple B
+  
+  # B1 or B3
+  B <- Bs[[idx]] 
+  # B2
+  # B = gen_rand_conn(n, Ktru, lambda, gamma)
+  
   theta <- rpareto(n, 3/4, 4)
   z <- sample(Ktru, n, replace=T, prob=Pi)
   
@@ -48,7 +82,7 @@ simulate_run <- function(j) {
     "SNAC+", nac_results$snac,
     "SNAC+ boot", nac_results$snac_boot,
     "NAC+ boot", nac_results$nac_boot,
-    "AS boot", nac_results$spec_boot,
+    "AS boot", nac_results$as_boot,
     "BIC", nac_results$LRBIC,
     "BH",bethe_hessian_select(A, Kmax)$K, # BHMC
     "NCV", which.min(NCV.select(A,Kmax)$dc.l2), # network cv

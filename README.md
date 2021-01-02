@@ -12,7 +12,7 @@ The code relies on the [`nett`](https://github.com/aaamini/nett) package.
 
 ## FB-100 analysis
 
-FB-100 data has not been uploaded yet
+FB-100 data has not been uploaded yet. ```FBhist``` contains histogram profiles of the networks. ```FBoutput``` contains other output of the networks.
 
 ```FB_hist.R```: create a histogram profile of SNAC+ statistics applied to FB networks and DCSBM with planted partition structure.
 

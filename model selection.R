@@ -26,27 +26,6 @@ nlam = length(lambdas)
 Bs <- lapply(lambdas,  function(lambda) pp_conn(n, beta, lambda, Pi)$B )
 # B2
 # gamma <- 0.3
-# rsymperm = function(K) {
-#   if (K == 1) return(1)
-#   B = matrix(0, K, K)
-#   r = sample(1:K, 1)
-#   B[1,r] = B[r,1] = 1
-#   idx = setdiff(1:K, c(1,r))
-#   nidx = length(idx)
-#   if (nidx > 0) {
-#     B[idx, idx] = rsymperm(nidx)  
-#   }
-#   B
-# }
-# gen_rand_conn = function(n, K, lambda, gamma, pri = rep(1,K)/K) {
-#   B = matrix(runif(K^2),K)
-#   B = (B + t(B))/2
-#   # main structure 
-#   rand_perm_mat = rsymperm(K) # diag(K)[, sample(K)]
-#   B = (1-gamma)*rand_perm_mat + gamma*B
-#   scale = get_dcsbm_exav_deg(n, pri, B)
-#   B*lambda/scale
-# }
 # B3,  different numbers on the diagonal
 # Bs <- lapply(lambdas,  function(lambda) pp_conn(n, beta, lambda, Pi, d = c(1,2,3,1))$B)
 

@@ -123,8 +123,8 @@ both_prof_res %>%
     # text = ggplot2::element_text(size=26)
   ) 
 
-ggsave("FBhist/fb_hist.pdf",width=6, height=5)
-ggsave("FBhist/fb_hist_zoom_in.pdf",width=6, height=5)
+# ggsave("FBhist/fb_hist.pdf",width=6, height=5)
+# ggsave("FBhist/fb_hist_zoom_in.pdf",width=6, height=5)
 
 
 

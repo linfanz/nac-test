@@ -2,13 +2,12 @@
 boot_nac <- function(A, z, K, nrep = 10, dcsbm_boot = T) {
   # printf('nboot = %d ', nrep)
   # bootstrap with SBM
-  B <- nett::estim_sbm(A, z)
+  out <- nett::estim_dcsbm(A, z)
+  B <- out$B
   # bootstrap with DCSBM
-  # out = nett::estim_dcsbm(A, z)
-  # theta = out$theta
-  # B = out$B
+  # theta <- out$theta
   boot_samp <-sapply(1:nrep, function(i) {
-    Aboot <- nett::fastSBM(z, B)
+    Aboot <- nett::fast_sbm(z, B)
     # Aboot <- nett::sample_dcsbm(z, B, theta = theta)
     zboot <- spec_clust(Aboot, K)
     c(

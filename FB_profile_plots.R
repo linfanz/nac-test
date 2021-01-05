@@ -4,9 +4,6 @@ library(nett)
 library(tidyverse)
 library(igraph)
 library(doParallel)
-library(KRLS2)
-source("plot_smooth_profile.R")
-
 
 if (!exists("Alist")) Alist <- readRDS(file.path("data","Alist.rds"))
 
@@ -63,6 +60,6 @@ if (file.exists(dat_fname)) {
   save(tstat, file = dat_fname)
 }
 # plot_smooth_profile(tstat, net_name, krr=T, trunc_type = "none", spar=0.3, plot_null_spar = T)
-plot_smooth_profile(tstat, net_name, krr=F, trunc_type = "none", spar=0.3, plot_null_spar = T)
+plot_smooth_profile(tstat, net_name, trunc_type = "none", spar=0.3, plot_null_spar = T)
 ggsave(file.path(result_folder, paste0(tag, ".pdf")), width=6, height=5)
 

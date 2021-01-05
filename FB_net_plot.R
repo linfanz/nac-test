@@ -30,7 +30,7 @@ K = 3
 dev.off()
 A <- as_adjacency_matrix(g3)
 zh = spec_clust(A, K, tau = 0.25)
-zh2 = nett::fastCPL(A, K, ilabels = zh, Iter = 20)
+zh2 = nett::fast_cpl(A, K, ilabels = zh, niter = 20)
 compute_mutual_info(zh2,zh)
 
 net_tag = sprintf("%s_%dpct", net_name, round(100*deg_prec))

@@ -36,6 +36,7 @@ nitr <- 200 # number of simulated adjacency matrix
 runs <- expand.grid(lam_idx = 1:nlam, itr = 1:nitr)
 
 simulate_run <- function(j) {
+  set.seed(j)
   idx <- runs[j,"lam_idx"]
   itr <- runs[j,"itr"]
   

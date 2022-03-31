@@ -12,9 +12,16 @@ nruns = 1000 # num of simulated adjacency matrices
 DC <- T # whether the model has the degree-correction 
 balanced <- F # whether community sizes are balanced
 K <- 4 # number of communities
-n <- 10000
-oir <- 0.1 # out-in ratio
-lambda <- 15 # average degrees
+# n <- 10000
+n <- 2000
+if (lvm_alt) {
+  lambda <- 8 # average degrees for DCLVM alternative 
+  oir <- 0.1 # out-in ratio
+}else{
+  lambda <- 15 # average degrees for DCSBM alternative 
+  oir <- 0.1 # out-in ratio
+}
+
 K_H0 <- K # number of communities in H0
 K_H1 <- K+1 # number of communities in Ha
 
@@ -35,7 +42,7 @@ if (balanced) {
 }
 
 
-file_tag = gsub("\\.","p",sprintf("roc6_%dvs%d_n%d_lam%d_oir%2.2f_nruns%d_%s%s_%s", 
+file_tag = gsub("\\.","p",sprintf("roc6_%dvs%d_n%d_lam%d_oir%2.2f_nruns%d_%s%s_%s_updated", 
                                   K_H0, K_H1, n, lambda, oir, nruns, ifelse(DC, "dc", ""), ifelse(lvm_alt,"lvm","sbm"),  ifelse(balanced,"bal","unbal")))
 
 

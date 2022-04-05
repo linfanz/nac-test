@@ -121,6 +121,12 @@ deg_match_res <- do.call(bind_rows, mclapply(1:100, function(net_id) {
   )
 }, mc.cores = 10))
 
+
+# results -----------------------------------------------------------------
+
+### synthesized DCSBM has degree distribution close to FB networks 
+mean(deg_match_res$KS_pvalue > 0.01)
+
 ### empirical histograms
 p1 = deg_match_res %>%
   filter(method == "ber")%>%

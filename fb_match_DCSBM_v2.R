@@ -1,9 +1,68 @@
 library(fastRG) # used to generate Poisson DCSBM
 library(dplyr)
 library(nett)
-if (!exists("Alist")) Alist <- readRDS(file.path("data","Alist.rds"))
-Ktru <- 3
+set.seed(123)
 
+if (!exists("Alist")) Alist <- readRDS(file.path("data","Alist.rds"))
+
+
+# modify snac_test to compute on large degree only   ----------------------
+LargeDegIdx <- function(z, K, deg, perc=0.5) {
+  return(
+    as.vector(unlist(sapply(1:K, function(k) {
+      index_k <- which(z == k)
+      index_k[which(deg[index_k] > median(deg[index_k]))]
+    })))
+  )
+}
+
+snac_test_v2 <- function(A, K, z = NULL, ratio = 0.5, fromEachCommunity = TRUE, 
+                      plus = TRUE, trueLabel = FALSE, useLargeDeg = FALSE,
+                      cluster_fct = spec_clust, nrep = 1, ...) {
+  if (is.null(z)) 
+    z <- cluster_fct(A, K, ...)
+  
+  n <- length(z)
+  stat <- c()
+  deg <- rowSums(A)
+  for (i in 1:nrep) {
+    ## get index 
+    if (fromEachCommunity) {
+      if (useLargeDeg){
+        index2 <- LargeDegIdx(z, K, deg)
+      }else{
+        index2 <- sampleEveryComm(z, K, ratio)
+      }
+    }
+    else {
+      if (useLargeDeg){
+        index2 <- (1:n)[which(deg > median(deg))]
+      }else{
+        index2 <- sample(n, round(n * ratio))
+      }
+    }
+    index1 <- (1:n)[-index2]
+    
+    ## get y label
+    if (plus) {
+      y1 <- cluster_fct(A[index1, index1], K + 1, ...)
+    }
+    else {
+      if (trueLabel) {
+        y1 <- z[index1]
+      }else{
+        y1 <- cluster_fct(A[index1, index1], K, ...)
+      }
+    }
+    z2 <- z[index2]
+    stat[i] <- nac_test(A[index2, index1], K, z = z2, y = y1)$stat
+  }
+  return(list(stat = stat, z = z))
+}
+
+
+# synthesize DCSBM  -------------------------------------------------------
+Ktru <- 3
 all_degs = unlist(lapply(Alist, rowSums))
 # all_degs = all_degs[all_degs < 800]
 N = length(all_degs)
@@ -20,16 +79,20 @@ deg_match_res <- do.call(bind_rows, mclapply(1:100, function(net_id) {
   ave_deg <- mean(deg)
   n <- dim(A_fb)[1]
   
-  ## use pareto distribution to generate theta
+  ### a) use pareto distribution to generate theta
   # estimate pareto parameters for each individual network
   # location_h = min(deg)
   # shape_h = n/(sum(log(deg)) - n*log(location_h))
-  theta <- rpareto(n, location_h, shape_h)
+  ## or omit the above two lines and use all degrees to estimate parameter 
+  # theta <- rpareto(n, location_h, shape_h)
   
-  ### use kernel density estimation result
+  ### b) use kernel density estimation result
   # theta <- rnorm(n, mean = all_degs, sd = bw)
   # theta <- theta[theta > 0]
   # theta <- sample(theta, n, replace = TRUE)
+  
+  ### c) use FB degrees directly as theta
+  theta = deg 
   
   B = pp_conn(n, oir = 0.1, lambda = ave_deg,
                pri = rep(1,Ktru), theta = theta)$B
@@ -41,7 +104,7 @@ deg_match_res <- do.call(bind_rows, mclapply(1:100, function(net_id) {
   # Poisson generation
   model <- fastRG::dcsbm(theta = theta, B = B, expected_degree = ave_deg)
   levels(model$z) <- 1:Ktru
-  z_poi <- model$z
+  z_poi <- as.numeric(model$z)
   A_poi <- fastRG::sample_sparse(model)
   deg_poi <- rowSums(A_poi)
   
@@ -49,10 +112,12 @@ deg_match_res <- do.call(bind_rows, mclapply(1:100, function(net_id) {
   tibble::tribble(
     ~method, ~KS_pvalue, ~ave_deg_diff, ~SNAC_zh, ~SNAC_z, 
     "ber", ks.test(deg, deg_ber)$p.value, abs(mean(deg_ber) - ave_deg), 
-    snac_test(A_ber, Ktru)$stat, snac_test(A_ber, Ktru, z = z_ber)$stat,
+    snac_test_v2(A_ber, Ktru, plus = F, useLargeDeg = T)$stat, 
+    snac_test_v2(A_ber, Ktru, z = z_ber, plus = F, trueLabel = T, useLargeDeg = T)$stat,
     
     "poi", ks.test(deg, deg_poi)$p.value, abs(mean(deg_poi) - ave_deg),
-    snac_test(A_poi, Ktru)$stat, snac_test(A_poi, Ktru, z = z_poi)$stat,
+    snac_test_v2(A_poi, Ktru, plus = F,  useLargeDeg = T)$stat, 
+    snac_test_v2(A_poi, Ktru, z = z_poi, plus = F, trueLabel = T, useLargeDeg = T)$stat,
   )
 }, mc.cores = 10))
 

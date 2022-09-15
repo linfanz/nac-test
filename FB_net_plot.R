@@ -1,7 +1,10 @@
+library(igraph)
+library(nett)
 # Network plot 
-if (!exists("Alist")) Alist <- readRDS(file.path("data","Alist.rds"))
+if (!exists("Alist")) Alist <- readRDS(file.path("FBdata","Alist.rds"))
 college_names <- names(Alist)
-net_id = which(college_names == "Caltech36")
+# net_id = which(college_names == "Caltech36")
+net_id = which(college_names == "Maryland58")
 # net_id = which(college_names == "Northeastern19")
 # net_id = which(college_names == "Harvard1")
 # net_id = which(college_names == "Stanford3")
@@ -26,7 +29,7 @@ g3 <- g2 %>%
   induced_subgraph(idx)%>%
   extract_largest_cc()
 
-K = 3
+K = 2
 dev.off()
 A <- as_adjacency_matrix(g3)
 zh = spec_clust(A, K, tau = 0.25)
@@ -42,6 +45,8 @@ if (file.exists(coord_filename)) {
 par(mar = c(0,0,0,0))
 
 out = plot_net(g3, community = zh2, vertex_alpha=.55, coord = coord)
+out = plot_net(g3, community = sample(2, length(zh2), replace = T), vertex_alpha=.55, coord = coord)
+
 # title(net_name, cex.main = 3)
 # text(0.1,1, sprintf("(degrees < %d%%)", round(100*deg_prec)), cex=2)
 

@@ -23,7 +23,9 @@ if (lvm_alt) {
 }
 
 K_H0 <- K # number of communities in H0
-K_H1 <- K+1 # number of communities in Ha
+# K_H1 <- K+1 # number of communities in Ha (main)
+# K_H1 <- K-1 # number of communities in Ha (appendix)
+K_H1 <- K # number of communities in Ha (appendix)
 
 if (DC) {
   theta <- EnvStats::rpareto(n, 3/4, 4)    
@@ -52,7 +54,7 @@ apply_methods = function(A) {
   z1 = spec_clust(A, K_H1)
   tibble::tribble(
     ~method, ~tstat, ~twosided,
-    "NAC+", nac_test(A, K_H0, z=z0, y=z0p)$stat, F,
+    "FNAC+", nac_test(A, K_H0, z=z0, y=z0p)$stat, F,
     "SNAC+", snac_test(A, K_H0, z=z0)$stat, F,
     "AS", adj_spec_test(A, K_H0, z=z0), F,
     "LR", eval_dcsbm_loglr(A, cbind(z0, z1), poi=T), F
@@ -101,6 +103,7 @@ plot_roc <- function(roc_results, method_names=NULL) {
   }
   cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
   p = roc_results %>%
+    filter(method != "LR") %>% # leave out LR when K_H0 = K_H1
     ggplot2::ggplot(ggplot2::aes(x = FPR, y = TPR, color = method, linetype = method)) +
     ggplot2::scale_colour_manual(values=cbbPalette)+
     ggplot2::geom_line(size=2)  +
@@ -123,7 +126,7 @@ plot_roc <- function(roc_results, method_names=NULL) {
 }
 
 plot_res <- roc_res$roc
-plot_res$method <- factor(plot_res$method, levels = c("NAC+","SNAC+","AS", "LR"))
+plot_res$method <- factor(plot_res$method, levels = c("FNAC+","SNAC+","AS", "LR"))
 plot_roc(plot_res)
 # ggsave(paste0(file_tag, ".pdf"), width = 8.22, height = 6.94)
 
